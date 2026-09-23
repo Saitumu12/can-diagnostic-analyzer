@@ -82,10 +82,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install can-utils
+      - name: Install can-utils and the vcan kernel module
         run: |
           sudo apt-get update
-          sudo apt-get install -y can-utils
+          sudo apt-get install -y can-utils "linux-modules-extra-$(uname -r)"
 
       - name: Install the package
         run: |
