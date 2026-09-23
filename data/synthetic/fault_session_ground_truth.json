@@ -1,0 +1,55 @@
+{
+  "capture": "fault_session.log",
+  "data_origin": "synthetic",
+  "generator": "can_diag.synthetic",
+  "seed": 20240518,
+  "deterministic": true,
+  "duration_seconds": 60.0,
+  "frame_count": 1287,
+  "first_timestamp": 1699999999.997408,
+  "last_timestamp": 1700000059.919943,
+  "description": "Sixty seconds carrying the three ThermalController fault-injection commands that the firmware implements: a five second out-of-range reading, a three second transmission silence, and a four value sequence-counter skip.",
+  "injected_events": [
+    {
+      "kind": "range",
+      "node": "ThermalController",
+      "serial_command": "range 5",
+      "start_seconds": 15.0,
+      "end_seconds": 20.0,
+      "interval": "half-open [start, end)",
+      "description": "ThermalController reports a saturated raw temperature of 0x7FFF with node state Degraded and fault code SensorSaturation for 5 seconds. Uptime and the sequence counter keep running.",
+      "expected_findings": [
+        "range_violation",
+        "range_recovered"
+      ]
+    },
+    {
+      "kind": "silent",
+      "node": "ThermalController",
+      "serial_command": "silent 3",
+      "start_seconds": 30.0,
+      "end_seconds": 33.0,
+      "interval": "half-open [start, end)",
+      "description": "ThermalController transmits neither THERMAL_DATA nor THERMAL_HEARTBEAT for 3 seconds. The node keeps running, so uptime continues and the sequence counter resumes where it stopped. PowerMonitor traffic is unaffected.",
+      "expected_findings": [
+        "data_message_stale",
+        "heartbeat_timeout",
+        "node_silent",
+        "message_recovered",
+        "node_recovered"
+      ]
+    },
+    {
+      "kind": "skip",
+      "node": "ThermalController",
+      "serial_command": "skip 4",
+      "start_seconds": 45.0,
+      "end_seconds": null,
+      "interval": "instantaneous",
+      "description": "ThermalController advances its sequence counter by 4 extra values before the next transmission, leaving 4 counter values unobserved.",
+      "expected_findings": [
+        "sequence_gap"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+VERSION "hobby-can-bench-1.0"
+
+
+NS_ :
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: PowerMonitor ThermalController Analyzer
+
+
+BO_ 384 POWER_DATA: 8 PowerMonitor
+ SG_ ModuleTemperature : 0|16@1- (0.1,0) [-40|150] "degC" Analyzer
+ SG_ SupplyVoltage : 16|16@1+ (0.01,0) [9|16] "V" Analyzer
+ SG_ NodeState : 32|8@1+ (1,0) [0|3] "" Analyzer
+ SG_ SequenceCounter : 40|8@1+ (1,0) [0|255] "" Analyzer
+ SG_ FaultCode : 48|8@1+ (1,0) [0|1] "" Analyzer
+ SG_ Reserved : 56|8@1+ (1,0) [0|0] "" Analyzer
+
+BO_ 385 POWER_HEARTBEAT: 8 PowerMonitor
+ SG_ Uptime : 0|32@1+ (1,0) [0|4294967295] "s" Analyzer
+ SG_ NodeState : 32|8@1+ (1,0) [0|3] "" Analyzer
+ SG_ ResetReason : 40|8@1+ (1,0) [0|3] "" Analyzer
+ SG_ Reserved : 48|16@1+ (1,0) [0|0] "" Analyzer
+
+BO_ 640 THERMAL_DATA: 8 ThermalController
+ SG_ ModuleTemperature : 0|16@1- (0.1,0) [-40|150] "degC" Analyzer
+ SG_ SupplyVoltage : 16|16@1+ (0.01,0) [9|16] "V" Analyzer
+ SG_ NodeState : 32|8@1+ (1,0) [0|3] "" Analyzer
+ SG_ SequenceCounter : 40|8@1+ (1,0) [0|255] "" Analyzer
+ SG_ FaultCode : 48|8@1+ (1,0) [0|1] "" Analyzer
+ SG_ Reserved : 56|8@1+ (1,0) [0|0] "" Analyzer
+
+BO_ 641 THERMAL_HEARTBEAT: 8 ThermalController
+ SG_ Uptime : 0|32@1+ (1,0) [0|4294967295] "s" Analyzer
+ SG_ NodeState : 32|8@1+ (1,0) [0|3] "" Analyzer
+ SG_ ResetReason : 40|8@1+ (1,0) [0|3] "" Analyzer
+ SG_ Reserved : 48|16@1+ (1,0) [0|0] "" Analyzer
+
+
+
+CM_ BU_ PowerMonitor "ESP32-WROOM-32 node that reports bench supply voltage and its own module temperature.";
+CM_ BU_ ThermalController "ESP32-WROOM-32 node that reports thermal plate temperature and accepts serial fault-injection commands.";
+CM_ BU_ Analyzer "Linux host running the can-diag analyzer through a SocketCAN adapter. Receive only.";
+CM_ BO_ 384 "Cyclic power node measurement frame, 100 ms period.";
+CM_ BO_ 385 "Power node liveness frame, 1000 ms period.";
+CM_ BO_ 640 "Cyclic thermal node measurement frame, 100 ms period.";
+CM_ BO_ 641 "Thermal node liveness frame, 1000 ms period.";
+CM_ SG_ 384 ModuleTemperature "Signed little-endian raw count scaled by 0.1 degC. Project plausibility range -40 to 150 degC.";
+CM_ SG_ 384 SupplyVoltage "Unsigned little-endian raw count scaled by 0.01 V. Project plausibility range 9 to 16 V.";
+CM_ SG_ 384 SequenceCounter "Free running 8 bit counter incremented once per transmitted data frame, wrapping 255 to 0.";
+CM_ SG_ 640 ModuleTemperature "Signed little-endian raw count scaled by 0.1 degC. Project plausibility range -40 to 150 degC.";
+CM_ SG_ 640 SupplyVoltage "Unsigned little-endian raw count scaled by 0.01 V. Project plausibility range 9 to 16 V.";
+CM_ SG_ 640 SequenceCounter "Free running 8 bit counter incremented once per transmitted data frame, wrapping 255 to 0.";
+CM_ SG_ 385 Uptime "Seconds since the last node reset.";
+CM_ SG_ 641 Uptime "Seconds since the last node reset.";
+
+BA_DEF_ BO_  "GenMsgCycleTime" INT 0 65535;
+BA_DEF_ BU_  "NodeLayerModules" STRING ;
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_  "GenMsgCycleTime" 0;
+BA_DEF_DEF_  "NodeLayerModules" "";
+BA_DEF_DEF_  "BusType" "CAN";
+BA_ "BusType" "CAN";
+BA_ "GenMsgCycleTime" BO_ 384 100;
+BA_ "GenMsgCycleTime" BO_ 385 1000;
+BA_ "GenMsgCycleTime" BO_ 640 100;
+BA_ "GenMsgCycleTime" BO_ 641 1000;
+
+VAL_ 384 NodeState 0 "Booting" 1 "Normal" 2 "Degraded" 3 "Fault" ;
+VAL_ 384 FaultCode 0 "None" 1 "SensorSaturation" ;
+VAL_ 385 NodeState 0 "Booting" 1 "Normal" 2 "Degraded" 3 "Fault" ;
+VAL_ 385 ResetReason 0 "None" 1 "Watchdog" 2 "PowerOn" 3 "Software" ;
+VAL_ 640 NodeState 0 "Booting" 1 "Normal" 2 "Degraded" 3 "Fault" ;
+VAL_ 640 FaultCode 0 "None" 1 "SensorSaturation" ;
+VAL_ 641 NodeState 0 "Booting" 1 "Normal" 2 "Degraded" 3 "Fault" ;
+VAL_ 641 ResetReason 0 "None" 1 "Watchdog" 2 "PowerOn" 3 "Software" ;

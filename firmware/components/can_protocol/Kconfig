@@ -1,0 +1,17 @@
+menu "CAN bench node configuration"
+
+config CAN_BENCH_TWAI_TX_GPIO
+    int "TWAI TX GPIO"
+    range 0 33
+    default 21
+    help
+        GPIO routed to the CTX pin of the SN65HVD230 compatible transceiver.
+
+config CAN_BENCH_TWAI_RX_GPIO
+    int "TWAI RX GPIO"
+    range 0 39
+    default 22
+    help
+        GPIO routed to the CRX pin of the SN65HVD230 compatible transceiver.
+
+endmenu

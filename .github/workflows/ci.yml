@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  IDF_VERSION: v5.3.1
+
+jobs:
+  analyzer:
+    name: Analyzer (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install the package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Formatting
+        run: ruff format --check .
+
+      - name: Tests
+        run: pytest -v
+
+      - name: Regenerate every committed artifact
+        run: python scripts/regenerate.py
+
+      - name: Fail if any committed artifact is stale
+        run: git diff --exit-code
+
+      - name: Portable replay check
+        run: python scripts/replay_check.py --input data/synthetic/normal_session.log
+
+  shared-protocol:
+    name: Shared C protocol
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Build the host self test with warnings as errors
+        working-directory: firmware/components/can_protocol/test
+        run: make run
+
+      - name: Cross-check the C vectors against the DBC
+        run: pytest tests/test_c_protocol.py -v
+
+  vcan:
+    name: Linux SocketCAN round trip
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install can-utils
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y can-utils
+
+      - name: Install the package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Bring up vcan0
+        run: |
+          sudo modprobe vcan
+          sudo ip link add dev vcan0 type vcan
+          sudo ip link set up vcan0
+          ip -details link show vcan0
+
+      - name: Replay onto vcan0 and verify what came back
+        run: scripts/vcan_roundtrip.sh vcan0 fault_session
+
+      - name: Repeat for the restart session
+        run: scripts/vcan_roundtrip.sh vcan0 restart_session
+
+  firmware:
+    name: ESP-IDF ${{ matrix.application }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        application: [power_monitor, thermal_controller]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build for esp32
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: ${{ env.IDF_VERSION }}
+          target: esp32
+          path: firmware/${{ matrix.application }}

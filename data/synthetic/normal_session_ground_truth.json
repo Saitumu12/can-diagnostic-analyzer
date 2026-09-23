@@ -1,0 +1,13 @@
+{
+  "capture": "normal_session.log",
+  "data_origin": "synthetic",
+  "generator": "can_diag.synthetic",
+  "seed": 20240517,
+  "deterministic": true,
+  "duration_seconds": 10.0,
+  "frame_count": 220,
+  "first_timestamp": 1700000000.000917,
+  "last_timestamp": 1700000009.923548,
+  "description": "Both nodes running normally for ten seconds with small scheduling jitter and no injected conditions.",
+  "injected_events": []
+}

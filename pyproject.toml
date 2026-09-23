@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "can-diagnostic-analyzer"
+version = "1.0.0"
+description = "CAN bus decoder, monitor and diagnostic reporter for a two-node ESP32 bench network"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Sai Tumu" }]
+keywords = ["can", "socketcan", "dbc", "esp32", "twai", "diagnostics"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Hardware :: Hardware Drivers",
+]
+dependencies = [
+    "python-can>=4.3",
+    "cantools>=39.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.5",
+]
+
+[project.scripts]
+can-diag = "can_diag.cli:main"
+
+[tool.setuptools]
+packages = ["can_diag"]
+
+[tool.setuptools.package-data]
+can_diag = ["py.typed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["firmware"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["B008"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
